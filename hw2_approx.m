@@ -73,6 +73,8 @@ end
 epsilon = .01;
 image = images(:, 1);
 
+grad_approx_o = zeros(hidden_layer_units, 10);
+grad_approx_o = grad_approx_o - 1;
 for i=1:hidden_layer_units
     for j=1:10
         w = w_output(i, j);
@@ -92,19 +94,11 @@ for i=1:hidden_layer_units
         g_output = a_output;
         g_output(g_output < 0) = 0;
 
-        [value, indices] = max(g_output');
-        predictions = indices;
-        y = zeros(10, 1);
-        for z=1:10
-            y(z, predictions == z) = 1;
-        end
-
-        y = y';
         label = labels1hot(counter, :);
         
         cost = 0;
         for k=1:10
-            cost = cost + (label(k) * log(y(k)) + (1 - label(k)) * log(1 - y(k)));
+            cost = cost + (label(k) * log(g_output(k)) + (1 - label(k)) * log(1 - g_output(k)));
         end
         Hcost = -1 * cost;
         
@@ -119,28 +113,21 @@ for i=1:hidden_layer_units
         g_output = a_output;
         g_output(g_output < 0) = 0;
 
-        [value, indices] = max(g_output');
-        predictions = indices;
-        y = zeros(10, 1);
-        for z=1:10
-            y(z, predictions == z) = 1;
-        end
-
-        y = y';
         label = labels1hot(counter, :);
         
         cost = 0;
         for k=1:10
-            cost = cost + (label(k) * log(y(k)) + (1 - label(k)) * log(1 - y(k)));
+            cost = cost + (label(k) * log(g_output(k)) + (1 - label(k)) * log(1 - g_output(k)));
         end
         Lcost = -1 * cost;
         
-        grad_approx = (Hcost - Lcost) / 2 * epsilon;
-        disp(grad_approx - bpg);
+        grad_approx_o (i, j) = (Hcost - Lcost) / 2 * epsilon;
     end
 end
 
-for i = 1:758
+grad_approx_h = zeros(785, hidden_layer_units);
+grad_approx_h = grad_approx_h - 1;
+for i = 1:785
     for j = 1:hidden_layer_units
         w = w_hidden(i, j);
         bpg = image(i) * delta_hidden(j);
@@ -158,19 +145,11 @@ for i = 1:758
         g_output = a_output;
         g_output(g_output < 0) = 0;
 
-        [value, indices] = max(g_output');
-        predictions = indices;
-        y = zeros(10, 1);
-        for z=1:10
-            y(z, predictions == z) = 1;
-        end
-
-        y = y';
         label = labels1hot(counter, :);
         
         cost = 0;
         for k=1:10
-            cost = cost + (label(k) * log(y(k)) + (1 - label(k)) * log(1 - y(k)));
+            cost = cost + (label(k) * log(g_output(k)) + (1 - label(k)) * log(1 - g_output(k)));
         end
         Hcost = -1 * cost;
         
@@ -185,24 +164,14 @@ for i = 1:758
         g_output = a_output;
         g_output(g_output < 0) = 0;
 
-        [value, indices] = max(g_output');
-        predictions = indices;
-        y = zeros(10, 1);
-        for z=1:10
-            y(z, predictions == z) = 1;
-        end
-
-        y = y';
         label = labels1hot(counter, :);
         
         cost = 0;
         for k=1:10
-            cost = cost + (label(k) * log(y(k)) + (1 - label(k)) * log(1 - y(k)));
+            cost = cost + (label(k) * log(g_output(k)) + (1 - label(k)) * log(1 - g_output(k)));
         end
         Lcost = -1 * cost;
         
-        grad_approx = (Hcost - Lcost) / 2 * epsilon;   
-        disp(grad_approx - bpg);
-
+        grad_approx_h(i, j) = (Hcost - Lcost) / 2 * epsilon;   
     end
 end
