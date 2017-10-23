@@ -1,10 +1,10 @@
 imagedata = loadMNISTImages('train-images.idx3-ubyte');
 labeldata = loadMNISTLabels('train-labels.idx1-ubyte');
 
-images = imagedata(:, 1:20000);
-images = [images; ones(1, 20000)];
-labels = labeldata(1:20000,:);
-labels1hot = zeros(20000, 10);
+images = imagedata(:, 1:60000);
+images = [images; ones(1, 60000)];
+labels = labeldata(1:60000,:);
+labels1hot = zeros(60000, 10);
 for i=1:10
     labels1hot(labels == i - 1, i) = 1;
 end
@@ -26,7 +26,7 @@ hidden_layer_units = 128;
 w_hidden = rand(785, hidden_layer_units);
 w_output = rand(hidden_layer_units, 10);
 
-for counter = 1:20000
+for counter = 1:60000
     image = images(:, counter);
 
     a_hidden = w_hidden' * image;
@@ -37,6 +37,12 @@ for counter = 1:20000
     
     sumexp = sum(exp(a_output));
     g_output = exp(a_output) ./ sumexp;
+    
+    cost = 0;
+    for k=1:10
+        cost = cost + (label(k) * log(g_output(k)) + (1 - label(k)) * log(1 - g_output(k)));
+    end
+    loss = -cost;
 
     [value, indices] = max(g_output');
     predictions = indices;
@@ -47,25 +53,17 @@ for counter = 1:20000
 
     y = y';
     label = labels1hot(counter, :);
-    delta_output = label - y;
+    delta_output = label - g_output;
 
-    delta_hidden = zeros(hidden_layer_units, 1);
+    delta_hidden = zeros(1, hidden_layer_units);
     for i=1:hidden_layer_units
         a = a_hidden(i);
         grad = exp(-a) / ((1 + exp(-a)) ^ 2);
         delta_hidden(i) = sum(w_output(i, :) .* delta_output) * grad;
     end
 
-    alpha = .1;
-    for i=1:hidden_layer_units
-        for j=1:10
-            w_output(i, j) = w_output(i, j) + alpha * delta_output(j) * g_hidden(i);
-        end
-    end
-
-    for i = 1:758
-        for j = 1: 128
-            w_hidden(i, j) = w_hidden(i, j) + alpha * delta_hidden(j) * image(i);
-        end
-    end
+    lambda = .0001;
+    alpha = .1;  
+    w_output = w_output + alpha * (g_hidden * delta_output + lambda * w_output);    
+    w_hidden = w_hidden + alpha * (image * delta_hidden + lambda * w_hidden);
 end
