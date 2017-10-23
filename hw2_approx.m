@@ -34,9 +34,9 @@ for counter = 1:20000
     g_hidden = 1 ./ (1 + exp(a_hidden * -1));
 
     a_output = g_hidden' * w_output;
-
-    g_output = a_output;
-    g_output(g_output < 0) = 0;
+    
+    sumexp = sum(exp(a_output));
+    g_output = exp(a_output) ./ sumexp;
 
     [value, indices] = max(g_output');
     predictions = indices;
@@ -91,8 +91,8 @@ for i=1:hidden_layer_units
 
         a_output = g_hidden' * w_output;
 
-        g_output = a_output;
-        g_output(g_output < 0) = 0;
+        sumexp = sum(exp(a_output));
+        g_output = exp(a_output) ./ sumexp;
 
         label = labels1hot(counter, :);
         
@@ -110,8 +110,8 @@ for i=1:hidden_layer_units
 
         a_output = g_hidden' * w_output;
 
-        g_output = a_output;
-        g_output(g_output < 0) = 0;
+        sumexp = sum(exp(a_output));
+        g_output = exp(a_output) ./ sumexp;
 
         label = labels1hot(counter, :);
         
@@ -142,9 +142,9 @@ for i = 1:785
 
         a_output = g_hidden' * w_output;
 
-        g_output = a_output;
-        g_output(g_output < 0) = 0;
-
+        sumexp = sum(exp(a_output));
+        g_output = exp(a_output) ./ sumexp;
+        
         label = labels1hot(counter, :);
         
         cost = 0;
@@ -161,8 +161,8 @@ for i = 1:785
 
         a_output = g_hidden' * w_output;
 
-        g_output = a_output;
-        g_output(g_output < 0) = 0;
+        sumexp = sum(exp(a_output));
+        g_output = exp(a_output) ./ sumexp;
 
         label = labels1hot(counter, :);
         
