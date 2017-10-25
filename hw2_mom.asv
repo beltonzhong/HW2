@@ -38,8 +38,8 @@ vCorrectCount = 0;
 vNumCorrect = zeros(1, 1);
 vLoss = 0;
 vLossValues = zeros(1, 1);
-
-lambda = .001;
+weight_change_hidden = zeros(785, 128);
+weight_change_output = zeros(128, 10);
 while 1
     index = int32(mod(numTrainingIterations, 50000));
     image = images(:, index + 1);
@@ -73,8 +73,12 @@ while 1
 
     lambda = .0001;
     alpha = .01;  
-    w_output = w_output + alpha * (g_hidden * delta_output + lambda * w_output);    
-    w_hidden = w_hidden + alpha * (image * delta_hidden + lambda * w_hidden);
+    weight_change_output = alpha * g_hidden * delta_output;
+    weight_change_hidden = alpha * image * delta_hidden;
+    
+    w_output =  momentum_decay * weight_change_output + (alpha * g_hidden * delta_output);
+    
+    w_hidden = weight_change_hidden * momentum_decay + (alpha * image * delta_hidden);
     
     iterationCount = iterationCount + 1;
     if iterationCount == 1000

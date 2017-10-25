@@ -23,53 +23,96 @@ end
 
 hidden_layer_units = 128;
 
-w_hidden = rand(785, hidden_layer_units);
-w_output = rand(hidden_layer_units, 10);
+w_hidden = rand(785, hidden_layer_units) - .5;
+w_output = rand(hidden_layer_units, 10) - .5;
 
-loss = zeros(60000, 1);
-correct = 0;
-rates = zeros(10, 1);
-for epochCount=1:20
-    for counter = 1:60000
-        image = images(:, counter);
 
-        a_hidden = w_hidden' * image;
+numTrainingIterations = 0;
+iterationCount = 0;
+correctCount = 0;
+numCorrect = zeros(1, 1);
+loss = 0;
+lossValues = zeros(1, 1);
 
-        g_hidden = 1 ./ (1 + exp(a_hidden * -1));
+vCorrectCount = 0;
+vNumCorrect = zeros(1, 1);
+vLoss = 0;
+vLossValues = zeros(1, 1);
 
-        a_output = g_hidden' * w_output;
+lambda = .001;
+while 1
+    index = int32(mod(numTrainingIterations, 50000));
+    image = images(:, index + 1);
+    a_hidden = w_hidden' * image;
+    g_hidden = tanh(a_hidden);
+    a_output = g_hidden' * w_output;
+    sumexp = sum(exp(a_output));
+    g_output = exp(a_output) ./ sumexp;
 
-        sumexp = sum(exp(a_output));
-        g_output = exp(a_output) ./ sumexp;
-
-        [value, indices] = max(g_output');
-        prediction = indices - 1;
-        if prediction == labels(counter)
-            correct = correct + 1;
-        end
-
-        label = labels1hot(counter, :);
-
-        cost = 0;
-        for k=1:10
-            cost = cost + (label(k) * log(g_output(k)) + (1 - label(k)) * log(1 - g_output(k)));
-        end
-        loss(counter) = -cost;
-
-        delta_output = label - g_output;
-
-        delta_hidden = zeros(1, hidden_layer_units);
-        for i=1:hidden_layer_units
-            a = a_hidden(i);
-            grad = exp(-a) / ((1 + exp(-a)) ^ 2);
-            delta_hidden(i) = sum(w_output(i, :) .* delta_output) * grad;
-        end
-
-        lambda = .0001;
-        alpha = .01;  
-        w_output = w_output + alpha * (g_hidden * delta_output + lambda * w_output);    
-        w_hidden = w_hidden + alpha * (image * delta_hidden + lambda * w_hidden);
+    [value, indices] = max(g_output');
+    label = labels1hot(index + 1, :);
+    delta_output = label - g_output;
+    
+    cost = 0;
+    for k=1:10
+        cost = cost + (label(k) * log(g_output(k)) + (1 - label(k)) * log(1 - g_output(k)));
     end
-    rates(epochCount) = correct / 600;
+    loss = loss - cost;
+    
+    prediction = indices - 1;
+    if prediction == labels(index + 1)
+        correctCount = correctCount + 1;
+    end
 
+    delta_hidden = zeros(1, hidden_layer_units);
+    for i=1:hidden_layer_units
+        a = a_hidden(i);
+        grad = 1 - (tanh(a) ^ 2);
+        delta_hidden(i) = sum(w_output(i, :) .* delta_output) * grad;
+    end
+
+    lambda = .0001;
+    alpha = .01;  
+    w_output = w_output + alpha * (g_hidden * delta_output + lambda * w_output);    
+    w_hidden = w_hidden + alpha * (image * delta_hidden + lambda * w_hidden);
+    
+    iterationCount = iterationCount + 1;
+    if iterationCount == 1000
+        numCorrect(int32(floor(numTrainingIterations / 1000)) + 1) = correctCount;
+        lossValues(int32(floor(numTrainingIterations / 1000)) + 1) = loss / 1000;
+        correctCount = 0;
+        loss = 0;
+        iterationCount = 0;
+        
+        for vItCount = 1:10000
+            vImage = images(:, 50000 + vItCount);
+            a_hidden = w_hidden' * vImage;
+            g_hidden = tanh(a_hidden);
+            a_output = g_hidden' * w_output;
+            sumexp = sum(exp(a_output));
+            g_output = exp(a_output) ./ sumexp;
+
+            [value, indices] = max(g_output');
+            
+            label = labels1hot(50000 + vItCount, :);
+            cost = 0;
+            for k=1:10
+                cost = cost + (label(k) * log(g_output(k)) + (1 - label(k)) * log(1 - g_output(k)));
+            end
+            loss = loss - cost;
+
+            prediction = indices - 1;
+            if prediction == labels(vItCount + 50000)
+                correctCount = correctCount + 1;
+            end
+        end
+        vNumCorrect(int32(floor(numTrainingIterations / 1000)) + 1) = correctCount;
+        vLossValues(int32(floor(numTrainingIterations / 1000)) + 1) = loss / 1000;
+        correctCount = 0;
+        loss = 0;
+        if (size(vNumCorrect, 2) > 2) && (abs(vNumCorrect(end) - vNumCorrect(end - 1)) < 1)
+            break;
+        end
+    end
+    numTrainingIterations = numTrainingIterations + 1;
 end

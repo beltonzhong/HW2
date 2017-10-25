@@ -73,8 +73,8 @@ while 1
 
     lambda = .0001;
     alpha = .01;  
-    w_output = w_output + alpha * (g_hidden * delta_output + lambda * w_output);    
-    w_hidden = w_hidden + alpha * (image * delta_hidden + lambda * w_hidden);
+    w_output = w_output + alpha * (g_hidden * delta_output + lambda * sign(w_output));    
+    w_hidden = w_hidden + alpha * (image * delta_hidden + lambda * sign(w_hidden));
     
     iterationCount = iterationCount + 1;
     if iterationCount == 1000

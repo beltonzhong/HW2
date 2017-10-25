@@ -31,7 +31,7 @@ for counter = 1:60000
 
     a_hidden = w_hidden' * image;
 
-    g_hidden = 1 ./ (1 + exp(a_hidden * -1));
+    g_hidden = tanh(a_hidden);
 
     a_output = g_hidden' * w_output;
     
@@ -52,7 +52,7 @@ for counter = 1:60000
     delta_hidden = zeros(1, hidden_layer_units);
     for i=1:hidden_layer_units
         a = a_hidden(i);
-        grad = exp(-a) / ((1 + exp(-a)) ^ 2);
+        grad = 1 - (tanh(a) ^ 2);
         delta_hidden(i) = sum(w_output(i, :) .* delta_output) * grad;
     end
 
@@ -79,7 +79,7 @@ for i=1:hidden_layer_units
         %foward prop on wh
         a_hidden = w_hidden' * image;
 
-        g_hidden = 1 ./ (1 + exp(a_hidden * -1));
+        g_hidden = tanh(a_hidden);
 
         a_output = g_hidden' * w_output;
 
@@ -98,7 +98,7 @@ for i=1:hidden_layer_units
         %forward prop on wl
          a_hidden = w_hidden' * image;
 
-        g_hidden = 1 ./ (1 + exp(a_hidden * -1));
+        g_hidden = tanh(a_hidden);
 
         a_output = g_hidden' * w_output;
 
@@ -130,7 +130,7 @@ for i = 1:785
         %foward prop on wh
         a_hidden = w_hidden' * image;
 
-        g_hidden = 1 ./ (1 + exp(a_hidden * -1));
+        g_hidden = tanh(a_hidden);
 
         a_output = g_hidden' * w_output;
 
@@ -149,7 +149,7 @@ for i = 1:785
         %forward prop on wl
          a_hidden = w_hidden' * image;
 
-        g_hidden = 1 ./ (1 + exp(a_hidden * -1));
+        g_hidden = tanh(a_hidden);
 
         a_output = g_hidden' * w_output;
 
